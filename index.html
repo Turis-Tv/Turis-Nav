@@ -102,12 +102,12 @@
 
     <script>
     // ==================================================================================
-    // UW PERSOONLIJKE FIREBASE CONFIGURATIE IS HIER GEPLAATST
+    // UW PERSOONLIJKE FIREBASE CONFIGURATIE MET DE CORRECTE DATABASE URL
     // ==================================================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCYOutcxpBRRQ3MEOVZiLL-lI2L1A8uWvs",
       authDomain: "turisnavapp.firebaseapp.com",
-      databaseURL: "https://turisnavapp.firebaseio.com", // BELANGRIJK: TOEGEVOEGD VOOR DATABASE CONNECTIE
+      databaseURL: "https://turisnavapp-default-rtdb.europe-west1.firebasedatabase.app", // CORRECTE URL
       projectId: "turisnavapp",
       storageBucket: "turisnavapp.appspot.com",
       messagingSenderId: "238654300870",
@@ -123,7 +123,7 @@
 
     const ADMIN_PASSWORD = '6636';
     let currentFilterValue = 'all';
-    let allItems = []; // Globale variabele om alle items te bewaren
+    let allItems = []; 
 
     // --- REAL-TIME LISTENER ---
     itemsRef.on('value', (snapshot) => {
@@ -228,7 +228,7 @@
         });
     }
 
-    // --- RENDER FUNCTIES (GEBRUIKEN NU 'allItems' VARIABELE) ---
+    // --- RENDER FUNCTIES ---
     function renderAdminList() { 
         const list = document.getElementById('addressList'); 
         list.innerHTML = ''; 
