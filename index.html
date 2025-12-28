@@ -24,7 +24,7 @@
         
         .controls-wrapper{display:flex;flex-direction:column;align-items:flex-end;gap:15px;flex-shrink:0;} 
         .edit-delete-controls{display:flex;gap:12px;} 
-        .edit-btn, .delete-btn { background:none; border:none; padding:0; cursor:pointer; font-size:14px; } 
+        .edit-btn, .delete-btn { background:none; border:none; padding:0; cursor:pointer; font-size:14px; }
         .delete-btn { color:#ff6b6b; }
         .address-item .waze-btn{padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db;}
         
@@ -41,7 +41,7 @@
         .export-item .route-btn { position:absolute;bottom:8px;right:8px;padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db; animation: flash 1s infinite; }
 
         /* --- NOTIFICATIE & REFRESH --- */
-        #notificationBell{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-left:10px;padding:5px;cursor:default}#notificationCount{position:absolute;top:0;right:0;background-color:#e74c3c;color:white;border-radius:50%;padding:2px 6px;font-size:10px;font-weight:bold;display:none}.refresh-button{background-color:#34495e;color:white;border:none;border-radius:6px;padding:8px 15px;font-size:14px;cursor:pointer;margin-left:10px}
+        .refresh-button{background-color:#34495e;color:white;border:none;border-radius:6px;padding:8px 15px;font-size:14px;cursor:pointer;margin-left:10px}
         
         /* --- MODAL & FILTER --- */
         .custom-filter-button{width:100%;padding:10px;border:1px solid #4a5568;border-radius:6px;background-color:rgba(0,0,0,0.2);color:#fff;font-size:13px;text-align:left;position:relative;cursor:pointer}.custom-filter-button::after{content:'▼';font-size:10px;color:#bdc3c7;position:absolute;right:12px;top:50%;transform:translateY(-50%)}#filterModal{z-index:1001}.filter-modal-content{background:rgba(44,62,80,0.9);border:1px solid rgba(255,255,255,0.1);padding:10px;border-radius:12px;width:85%;max-width:280px}.filter-option{padding:12px;border-radius:6px;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}.filter-option:hover{background-color:rgba(255,255,255,0.1)}.filter-option.selected{background-color:rgba(255,255,255,0.15)}.filter-option .checkmark{font-size:20px;color:#38ef7d;display:none}.filter-option.selected .checkmark{display:inline}
@@ -58,7 +58,6 @@
         @keyframes rainbowText { 0%,100% { color: #ffadad; } 25% { color: #c2ffad; } 50% { color: #ade9ff; } 75% { color: #e1adff; } }
         .note-text { font-size: 11px; margin-top: 4px; font-style: italic; animation: rainbowText 6s linear infinite; }
         .date-text { color: #a0aec0; font-size: 10px; font-style: italic; }
-
         .back-button{padding:8px 15px;background-color:#718096;color:#fff;border:none;border-radius:6px;font-size:14px}
     </style>
 </head>
@@ -70,7 +69,6 @@
     <!-- SCHERM 2: APP CONTAINER -->
     <div id="adminContainer" style="display: none;">
         <div id="mainView" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;"><!-- Logout knop hier verwijderd --></div>
             <div class="input-group"><input type="text" id="nameInput" class="input-field" placeholder="İsim  (zorunlu)"><input type="text" id="addressInput" class="input-field" placeholder="Adres (zorunlu)"></div>
             <div class="button-group">
                 <button class="action-button" onclick="saveItem()">Kayıt</button>
@@ -83,8 +81,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>Adres Listesi</h2>
                 <div style="display: flex; align-items: center;">
-                    <div id="notificationBell"><svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2z"></path></svg><span id="notificationCount"></span></div>
-                    <button class="refresh-button" onclick="refreshExportView()">🔄 Yenile</button>
+                    <button class="refresh-button" onclick="renderAllLists()">🔄 Yenile</button>
                     <button id="guestLogoutBtn" class="logout-button" style="display: none;" onclick="logout()">Çıkış yap</button>
                 </div>
             </div>
@@ -95,133 +92,202 @@
 
     <!-- MODALS / POP-UPS -->
     <div id="passwordModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeAdminPasswordModal()">×</button><h3>Yönetici Girişi</h3><input type="password" id="passwordInput" class="input-field" placeholder="Şifre" style="margin-top:10px; margin-bottom:20px; text-align:center;" onkeyup="if(event.key==='Enter')checkAdminPassword()"><button class="action-button" style="width:100%; margin:0;" onclick="checkAdminPassword()">Giriş Yap</button></div></div>
-    
-    <!-- REFRESH MODAL (Transparant) - Wordt nu ook gebruikt voor fouten -->
-    <div id="refreshModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeRefreshModal()">×</button><h3></h3><p id="modal-message"></p><button class="action-button" style="width:100%; margin:0;" onclick="closeRefreshModal()">OK</button></div></div>
-
+    <div id="errorModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeErrorModal()">×</button><h3></h3><p id="modal-message"></p><button class="action-button" style="width:100%; margin:0;" onclick="closeErrorModal()">OK</button></div></div>
     <div id="navigationModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeNavigationModal()">×</button><h3>Şuraya gidin:</h3><p id="modal-address-text"></p><div id="modal-actions-container" class="modal-actions"></div></div></div>
     <div id="filterModal" class="modal-overlay"><div class="filter-modal-content" onclick="event.stopPropagation()"><div id="filterOptionsList"></div></div></div>
 
-    <script>
-    const ADMIN_PASSWORD = '6636', STORAGE_KEY = 'savedAddressItems', NEW_ITEM_COUNT_KEY = 'newItemCount';
-    let currentFilterValue = 'all';
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <script>
+    // ==================================================================================
+    // UW PERSOONLIJKE FIREBASE CONFIGURATIE IS HIER GEPLAATST
+    // ==================================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYOutcxpBRRQ3MEOVZiLL-lI2L1A8uWvs",
+      authDomain: "turisnavapp.firebaseapp.com",
+      databaseURL: "https://turisnavapp.firebaseio.com", // BELANGRIJK: TOEGEVOEGD VOOR DATABASE CONNECTIE
+      projectId: "turisnavapp",
+      storageBucket: "turisnavapp.appspot.com",
+      messagingSenderId: "238654300870",
+      appId: "1:238654300870:web:6e09d6b353df94d0e8adc7",
+      measurementId: "G-7WFC0S7XRR"
+    };
+    // ==================================================================================
+
+    // Firebase initialisatie
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const itemsRef = database.ref('addresses');
+
+    const ADMIN_PASSWORD = '6636';
+    let currentFilterValue = 'all';
+    let allItems = []; // Globale variabele om alle items te bewaren
+
+    // --- REAL-TIME LISTENER ---
+    itemsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        allItems = [];
+        if (data) {
+            Object.keys(data).forEach(key => {
+                allItems.push({ id: key, ...data[key] });
+            });
+        }
+        allItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        if (sessionStorage.getItem('userRole') === 'guest' && snapshot.numChildren() > (window.lastItemCount || 0)) {
+            if (window.lastItemCount !== undefined) { 
+                playBeep();
+            }
+        }
+        window.lastItemCount = snapshot.numChildren();
+        
+        renderAllLists();
+    });
+
+    function renderAllLists() {
+        if (document.getElementById('mainView').style.display === 'block') {
+            renderAdminList();
+        }
+        if (document.getElementById('exportView').style.display === 'block') {
+            renderFilteredList();
+            updateFilterOptions();
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', () => { 
         const userRole = sessionStorage.getItem('userRole'); 
-        if (userRole === 'admin') {
-            document.querySelector('.button-group .action-button').textContent = 'Kayıt';
-            document.querySelector('.button-group .view-list-button').textContent = 'Liste';
-            document.querySelector('#loginView button.role-button:first-child').textContent = ' Admin'; 
-            loginAsAdmin(); 
-        } else if (userRole === 'guest') {
-            document.querySelector('#loginView button.role-button:first-child').textContent = ' Admin'; 
-            loginAsGuest();
-        }
+        if (userRole === 'admin') loginAsAdmin(); 
+        else if (userRole === 'guest') loginAsGuest();
         else { 
             document.getElementById('loginView').style.display = 'flex'; 
             document.getElementById('adminContainer').style.display = 'none'; 
-            document.querySelector('#loginView button.role-button:first-child').textContent = ' Admin'; 
         } 
     });
-    
-    const loadItems = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const saveItems = (items) => localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    
+
+    // --- DATA FUNCTIES (NU MET FIREBASE) ---
     function saveItem() { 
-        const name = document.getElementById('nameInput').value.trim(), address = document.getElementById('addressInput').value.trim(); 
-        if (!address) { showRefreshModal('Hata !!!', 'Adres alanı zorunludur.'); return } 
-        const items = loadItems(); 
+        const name = document.getElementById('nameInput').value.trim();
+        const address = document.getElementById('addressInput').value.trim();
+        if (!address) { showErrorModal('Hata !!!', 'Adres alanı zorunludur.'); return; }
+        
         const today = new Date();
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
-        items.push({ name, address, note: '', date: formattedDate }); 
-        saveItems(items); 
-        incrementNewItemCount(); 
+        
+        itemsRef.push({ 
+            name, 
+            address, 
+            note: '', 
+            date: formattedDate,
+            createdAt: firebase.database.ServerValue.TIMESTAMP 
+        });
+        
         document.getElementById('nameInput').value = ''; 
         document.getElementById('addressInput').value = ''; 
         document.getElementById('nameInput').focus(); 
-        renderAdminList(); 
-    }
-    function deleteItem(index) { 
-        if (!confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) return; 
-        let items = loadItems(); items.splice(index, 1); saveItems(items); renderAdminList(); 
     }
 
-    function startEdit(index) { 
-        const item = loadItems()[index], listItem = document.getElementById(`item-${index}`); if (!listItem) return; 
+    function deleteItem(id) { 
+        if (!confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) return; 
+        database.ref('addresses/' + id).remove();
+    }
+
+    function startEdit(id) {
+        const item = allItems.find(i => i.id === id);
+        if (!item) return;
+        
+        const listItem = document.getElementById(`item-${id}`);
+        if (!listItem) return;
+
         listItem.innerHTML = `<div class="item-content" style="width: 100%; margin-top:0;">
             <input type="text" value="${item.name}" class="input-field edit-name-input" placeholder="İsim">
             <input type="text" value="${item.address}" class="input-field edit-address-input" placeholder="Adres (zorunlu)">
             <input type="text" value="${item.note || ''}" class="input-field edit-note-input" placeholder="Not">
-            <input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih (gg-mm-jjjj)">
+            <input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih">
         </div>
-        <div class="controls-wrapper"><button onclick="saveEdit(${index})" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button><button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button></div>`; 
+        <div class="controls-wrapper">
+            <button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button>
+            <button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button>
+        </div>`; 
         listItem.querySelector('.edit-address-input').focus(); 
     }
-    function saveEdit(index) { 
-        const newName = document.querySelector(`#item-${index} .edit-name-input`).value.trim();
-        const newAddress = document.querySelector(`#item-${index} .edit-address-input`).value.trim();
-        const newNote = document.querySelector(`#item-${index} .edit-note-input`).value.trim();
-        const newDate = document.querySelector(`#item-${index} .edit-date-input`).value.trim();
-        if (!newAddress) { showRefreshModal('Hata !!!', 'Adres alanı zorunludur.'); return } 
-        let items = loadItems(); 
-        items[index] = { name: newName, address: newAddress, note: newNote, date: newDate }; 
-        saveItems(items); 
-        renderAdminList(); 
+
+    function saveEdit(id) { 
+        const newName = document.querySelector(`#item-${id} .edit-name-input`).value.trim();
+        const newAddress = document.querySelector(`#item-${id} .edit-address-input`).value.trim();
+        const newNote = document.querySelector(`#item-${id} .edit-note-input`).value.trim();
+        const newDate = document.querySelector(`#item-${id} .edit-date-input`).value.trim();
+        if (!newAddress) { showErrorModal('Hata !!!', 'Adres alanı zorunludur.'); return; }
+
+        database.ref('addresses/' + id).update({
+            name: newName,
+            address: newAddress,
+            note: newNote,
+            date: newDate
+        });
     }
-    
+
+    // --- RENDER FUNCTIES (GEBRUIKEN NU 'allItems' VARIABELE) ---
     function renderAdminList() { 
-        const items = loadItems(), list = document.getElementById('addressList'); list.innerHTML = ''; 
-        items.forEach((item, index) => { 
-            const li = document.createElement('li'); li.className = 'address-item'; li.id = `item-${index}`; 
+        const list = document.getElementById('addressList'); 
+        list.innerHTML = ''; 
+        allItems.forEach(item => { 
+            const li = document.createElement('li'); 
+            li.className = 'address-item'; 
+            li.id = `item-${item.id}`; 
             
             const noteHTML = item.note ? `<div class="note-text">${item.note}</div>` : '';
             const dateHTML = item.date ? `<div class="date-text">${item.date}</div>` : ''; 
 
             li.innerHTML = `
-                <div class="item-content" onclick="openNavigationModal(${index})">
+                <div class="item-content" onclick="openNavigationModal('${item.id}')">
                     <div class="name-text">${item.name || '(İsimsiz)'}</div>
                     <div class="address-text">${item.address}</div>
                     ${noteHTML}
                     ${dateHTML}
                 </div>
                 <div class="controls-wrapper">
-                    <button class="waze-btn" onclick="openNavigationModal(${index})">Route</button>
+                    <button class="waze-btn" onclick="openNavigationModal('${item.id}')">Route</button>
                     <div class="edit-delete-controls">
-                        <button class="edit-btn" onclick="startEdit(${index})">✏️</button>
-                        <button class="delete-btn" onclick="deleteItem(${index})">🗑️</button>
+                        <button class="edit-btn" onclick="startEdit('${item.id}')">✏️</button>
+                        <button class="delete-btn" onclick="deleteItem('${item.id}')">🗑️</button>
                     </div>
                 </div>`; 
             list.appendChild(li); 
         }); 
     }
-    
+
     function renderFilteredList() { 
-        const all = loadItems(), filtered = currentFilterValue === 'all' ? all : all.filter(item => item.name === currentFilterValue); 
-        const list = document.getElementById('exportList'); list.innerHTML = ''; 
-        if (filtered.length === 0) { list.innerHTML = '<li style="text-align:center;color:#a0aec0;padding:20px;">Bu filtre için adres yok.</li>'; return; } 
+        const filtered = currentFilterValue === 'all' ? allItems : allItems.filter(item => item.name === currentFilterValue); 
+        const list = document.getElementById('exportList'); 
+        list.innerHTML = ''; 
+        if (filtered.length === 0) { 
+            list.innerHTML = '<li style="text-align:center;color:#a0aec0;padding:20px;">Bu filtre için adres yok.</li>'; 
+            return; 
+        } 
         
         filtered.forEach(item => { 
-            const index = all.findIndex(i => i === item);
             const li = document.createElement('li'); 
             li.className = 'export-item'; 
-            li.onclick = () => openNavigationModal(index);
+            li.onclick = () => openNavigationModal(item.id);
             
             const noteHTML = item.note ? `<div class="note-text">${item.note}</div>` : '';
             const dateHTML = item.date ? `<span class="date-text">${item.date}</span>` : '';
 
             li.innerHTML = `
-                <button class="route-btn" onclick="event.stopPropagation(); openNavigationModal(${index});">Route</button>
+                <button class="route-btn" onclick="event.stopPropagation(); openNavigationModal('${item.id}');">Route</button>
                 <div class="export-item-header">
                     <strong>${item.name || '(İsimsiz)'}</strong>
                     ${dateHTML}
                 </div>
                 <div class="export-item-address">${item.address}</div>
-                ${noteHTML}
-            `; 
+                ${noteHTML}`; 
             list.appendChild(li); 
         }); 
     }
 
+    // --- UI & NAVIGATIE FUNCTIES ---
     function loginAsAdmin() {
         sessionStorage.setItem('userRole', 'admin');
         document.getElementById('loginView').style.display = 'none';
@@ -229,20 +295,19 @@
         document.getElementById('guestLogoutBtn').style.display = 'none';
         showMainView();
     }
+
     function loginAsGuest() {
         sessionStorage.setItem('userRole', 'guest');
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('adminContainer').style.display = 'block';
         document.getElementById('guestLogoutBtn').style.display = 'inline-block';
         document.getElementById('backButton').style.display = 'none'; 
-        const count = getNewItemCount();
-        if (count > 0) playBeep();
-        showExportView(false);
+        showExportView();
     }
+
     function logout() { 
         sessionStorage.removeItem('userRole'); 
-        document.getElementById('adminContainer').style.display = 'none';
-        document.getElementById('loginView').style.display = 'flex';
+        window.location.reload(); 
     }
 
     function showMainView() { 
@@ -250,7 +315,8 @@
         document.getElementById('mainView').style.display = 'block'; 
         renderAdminList(); 
     }
-    function showExportView(reset = true) {
+
+    function showExportView() {
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('exportView').style.display = 'block';
         const backBtn = document.getElementById('backButton');
@@ -264,19 +330,9 @@
         
         currentFilterValue = 'all';
         document.getElementById('customFilterBtn').textContent = 'Tüm İsimler';
-
-        if (reset) resetNewItemCount();
-        updateNotificationDisplay(getNewItemCount());
         renderFilteredList();
     }
-    function refreshExportView() { 
-        resetNewItemCount(); 
-        updateNotificationDisplay(0); 
-        currentFilterValue = 'all';
-        document.getElementById('customFilterBtn').textContent = 'Tüm İsimler';
-        renderFilteredList(); 
-        showRefreshModal('Yenileme Başarılı', 'Liste başarıyla yenilendi.');
-    }
+
     function showAdminPasswordModal() { document.getElementById('passwordModal').style.display = 'flex'; setTimeout(() => document.getElementById('passwordInput').focus(), 50); }
     function closeAdminPasswordModal() { document.getElementById('passwordInput').value = ''; document.getElementById('passwordModal').style.display = 'none'; }
     
@@ -286,23 +342,22 @@
             loginAsAdmin(); 
         } else { 
             closeAdminPasswordModal();
-            showRefreshModal('Hata !!!', 'Yanlış şifre!'); 
+            showErrorModal('Hata !!!', 'Yanlış şifre!');
         } 
     }
 
-    // NIEUWE MODAL FUNCTIES (Voor alert vervanging)
-    function showRefreshModal(title, message) {
-        document.getElementById('refreshModal').style.display = 'flex';
-        document.querySelector('#refreshModal h3').textContent = title;
+    function showErrorModal(title, message) {
+        document.getElementById('errorModal').style.display = 'flex';
+        document.querySelector('#errorModal h3').textContent = title;
         document.getElementById('modal-message').textContent = message;
     }
-    function closeRefreshModal() {
-        document.getElementById('refreshModal').style.display = 'none';
-    }
-    document.getElementById('refreshModal').addEventListener('click', closeRefreshModal);
+    function closeErrorModal() { document.getElementById('errorModal').style.display = 'none'; }
+    document.getElementById('errorModal').addEventListener('click', closeErrorModal);
     
-    function openNavigationModal(index) { 
-        const item = loadItems()[index]; document.getElementById('modal-address-text').textContent = item.address; 
+    function openNavigationModal(id) { 
+        const item = allItems.find(i => i.id === id);
+        if (!item) return;
+        document.getElementById('modal-address-text').textContent = item.address; 
         const safeAddr = item.address.replace(/'/g, "\\'"); 
         
         const wazeSVG = `<svg viewBox="0 0 100 100"><path d="M72.9,39.3c-2.3-0.9-4.8-1.5-7.5-1.5c-4.9,0-9.4,1.4-13.4,3.8c-2.1,1.3-4,2.9-5.5,4.7c-0.4,0.4-0.8,0.9-1.2,1.3 c-0.6,0.7-1.2,1.3-1.8,1.9l-0.1,0.1c-0.5,0.5-0.9,0.9-1.4,1.4C37.4,56,33.8,61,33.8,66.2c0,1,0.1,2.1,0.4,3.1 c0.1,0.5,0.2,0.9,0.4,1.3c0.4,1,0.9,2,1.5,2.9c0.7,1,1.5,1.9,2.4,2.8c0.5,0.5,1,0.9,1.5,1.3c2.3,1.9,5,3.3,8,4.2 c2.1,0.6,4.2,0.9,6.4,0.9c4.9,0,9.4-1.4,13.4-3.8c2.1-1.3,4-2.9,5.5-4.7c1.5-1.8,2.7-3.9,3.5-6.1c0.9-2.5,1.4-5.2,1.4-8 c0-5.2-1.7-10.1-4.7-14.1C75.2,42.4,74.2,40.8,72.9,39.3z M37,29c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S34,29,37,29z M62.6,20.2c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S59.6,20.2,62.6,20.2z M50,0C22.4,0,0,22.4,0,50c0,27.6,22.4,50,50,50s50-22.4,50-50C100,22.4,77.6,0,50,0z M74.3,69.5 C73,72.1,71.4,74.4,69.4,76.4c-2.3,2.3-5.1,4.1-8.1,5.4c-3.5,1.5-7.3,2.3-11.3,2.3s-7.8-0.8-11.3-2.3 c-6.6-2.8-12-8.2-14.8-14.8C22.2,63,21.5,58.8,21.5,54.5c0-10,4.1-19,10.7-25.6C37,24,42,21.5,47.9,21.5c4.3,0,8.4,1,12.1,2.9 c5.3,2.7,9.7,7.1,12.4,12.4C76.5,45.2,78.5,50,78.5,55C78.5,60.2,77.1,65.1,74.3,69.5z"></path></svg>`;
@@ -318,14 +373,12 @@
     document.getElementById('navigationModal').addEventListener('click', closeNavigationModal);
     function navigate(address, app) { const enc = encodeURIComponent(address), url = app === 'waze' ? `intent://?q=${enc}&navigate=yes#Intent;package=com.waze;scheme=waze;end` : `https://www.google.com/maps/search/?api=1&query=${enc}`; window.open(url, '_system') || window.open(url, '_blank'); closeNavigationModal(); }
 
-    function openFilterModal() { const items = loadItems(), names = [...new Set(items.map(i => i.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')); const list = document.getElementById('filterOptionsList'); list.innerHTML = ''; const add = (val, txt) => { const opt = document.createElement('div'); opt.className = 'filter-option' + (currentFilterValue === val ? ' selected' : ''); opt.innerHTML = `<span>${txt}</span><span class="checkmark">✓</span>`; opt.onclick=(e)=>{e.stopPropagation();selectFilter(val);};list.appendChild(opt); }; add('all', 'Tüm İsimler'); names.forEach(n => add(n, n)); document.getElementById('filterModal').style.display = 'flex'; }
+    function openFilterModal() { updateFilterOptions(); document.getElementById('filterModal').style.display = 'flex'; }
+    function updateFilterOptions() { const names = [...new Set(allItems.map(i => i.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')); const list = document.getElementById('filterOptionsList'); list.innerHTML = ''; const add = (val, txt) => { const opt = document.createElement('div'); opt.className = 'filter-option' + (currentFilterValue === val ? ' selected' : ''); opt.innerHTML = `<span>${txt}</span><span class="checkmark">✓</span>`; opt.onclick=(e)=>{e.stopPropagation();selectFilter(val);};list.appendChild(opt); }; add('all', 'Tüm İsimler'); names.forEach(n => add(n, n)); }
     function closeFilterModal() { document.getElementById('filterModal').style.display = 'none'; }
     document.getElementById('filterModal').addEventListener('click', closeFilterModal);
     function selectFilter(val) { currentFilterValue = val; document.getElementById('customFilterBtn').textContent = val === 'all' ? 'Tüm İsimler' : val; closeFilterModal(); renderFilteredList(); }
-    const incrementNewItemCount = () => localStorage.setItem(NEW_ITEM_COUNT_KEY, (getNewItemCount() + 1));
-    const resetNewItemCount = () => localStorage.setItem(NEW_ITEM_COUNT_KEY, '0');
-    const getNewItemCount = () => parseInt(localStorage.getItem(NEW_ITEM_COUNT_KEY) || '0');
-    function updateNotificationDisplay(count) { const bell = document.getElementById('notificationBell'), c = document.getElementById('notificationCount'); if (!bell || !c) return; c.style.display = count > 0 ? 'block' : 'none'; bell.style.visibility = count > 0 ? 'visible' : 'hidden'; c.textContent = count; }
+    
     function playBeep() { try { const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.setValueAtTime(880,a.currentTime);g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(0.5,a.currentTime+0.01);g.gain.linearRampToValueAtTime(0,a.currentTime+0.3);o.start(a.currentTime);o.stop(a.currentTime+0.3); } catch (e) { console.warn("Audio API niet beschikbaar.", e); }}
     </script>
 </body>
