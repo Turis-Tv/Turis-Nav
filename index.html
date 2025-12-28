@@ -22,10 +22,12 @@
         .action-button { width: auto; padding: 6px 12px; background-image: linear-gradient(to right, #38ef7d, #11998e); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; flex-grow: 0; flex-shrink: 0; }
         .logout-button { background: #c0392b; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; padding: 6px 12px; margin-left: 0; flex-grow: 0; flex-shrink: 0; }
 
+        /* --- SCROLL-GEDRAG --- */
         #adminContainer { height: calc(100vh - 20px); }
         #mainView, #exportView { display: none; flex-direction: column; height: 100%; }
         #addressList, #exportList { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
 
+        /* --- LOGIN VIEW --- */
         #loginView { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; padding: 20px; box-sizing: border-box; margin: -10px; }
         .login-panel { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 30px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
         .login-panel h1 { border-bottom: none; margin-bottom: 25px; font-size: 24px; }
@@ -37,16 +39,15 @@
         /* --- LIJSTEN & ITEMS (DEFINITIEF HERSTELD) --- */
         #addressList, #exportList { list-style: none; padding: 0; margin: 0; }
         
-        .address-item, .export-item { position: relative; } /* Basis voor absolute positionering */
-        
+        /* ADMIN PAGINA KAART */
         .address-item {
+            position: relative; 
             background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
-            border-radius: 8px; padding: 10px; margin-bottom: 7px; min-height: 80px; /* Geeft ruimte voor knoppen */
+            border-radius: 8px; padding: 10px; margin-bottom: 7px; min-height: 80px; 
         }
         .item-content { cursor: pointer; padding-right: 60px; }
-        .name-text { font-size: 16px; font-weight: bold; color: #fff; display: block; margin-bottom: 2px; }
+        .name-text { font-size: 15px; font-weight: bold; color: #fff; display: block; margin-bottom: 2px; } /* AANGEPAST */
         .address-text { font-size: 12px; color: #e0e0e0; word-wrap: break-word; }
-        
         .edit-delete-controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 12px; }
         .edit-btn, .delete-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 14px; }
         .delete-btn { color: #ff6b6b; }
@@ -56,15 +57,15 @@
             padding: 5px 8px; border: none; border-radius: 5px;
             color: #fff; cursor: pointer; font-size: 10px; font-weight: bold; background-color: #3398db;
         }
-
-        .address-item .route-btn { position: absolute; bottom: 10px; right: 10px; } /* Plaatsing voor Admin pagina */
+        .address-item .route-btn { position: absolute; bottom: 10px; right: 10px; }
         
-        .export-item { background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background-color .2s; }
+        /* LIJST / CHAUFFEUR PAGINA KAART */
+        .export-item { position: relative; background-color: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background-color .2s; }
         .export-item:active { background-color: rgba(255, 255, 255, 0.15); }
-        .export-item .route-btn { position: absolute; bottom: 8px; right: 8px; animation: flash 1s infinite; } /* Plaatsing + animatie voor Lijst pagina */
+        .export-item .route-btn { position: absolute; bottom: 8px; right: 8px; animation: flash 1s infinite; }
         .export-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-        .export-item-header strong { color: #fff; font-size: 17px; }
-        .export-item-address { font-size: 13px; line-height: 1.4; color: #e0e0e0; margin: 0; }
+        .export-item-header strong { color: #fff; font-size: 15px; font-weight: 600; } /* AANGEPAST */
+        .export-item-address { font-size: 12px; line-height: 1.4; color: #e0e0e0; margin: 0; } /* AANGEPAST */
         
         .refresh-button { background-color: #34495e; color: white; border: none; border-radius: 6px; padding: 8px 15px; font-size: 14px; cursor: pointer; }
         .back-button { padding: 8px 15px; background-color: #718096; color: #fff; border: none; border-radius: 6px; font-size: 14px; }
@@ -72,7 +73,7 @@
         .view-list-button { flex-grow: 1; padding: 6px; margin: 0; background: transparent; border: 2px solid; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; animation: rainbowBorder 4s linear infinite; }
         @keyframes rainbowText { 0%, 100% { color: #ffadad; } 25% { color: #c2ffad; } 50% { color: #ade9ff; } 75% { color: #e1adff; } }
         .note-text { font-size: 11px; margin-top: 4px; font-style: italic; animation: rainbowText 6s linear infinite; }
-        .date-text { color: #a0aec0; font-size: 10px; font-style: italic; margin-top: 4px; display: inline-block; white-space: nowrap; }
+        .date-text { color: #a0aec0; font-size: 10px; font-style: italic; margin-top: 4px; white-space: nowrap; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; box-sizing: border-box; }
         .modal-content { background: rgba(44, 62, 80, 0.95); border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px 20px; border-radius: 16px; width: 100%; max-width: 320px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); text-align: center; position: relative; }
@@ -186,7 +187,7 @@
         function startEdit(id) {
             const item = allItems.find(i => i.id === id); if (!item) return;
             const listItem = document.getElementById(`item-${id}`); if (!listItem) return;
-            listItem.innerHTML = `<div class="item-content" style="width: 100%; margin-top:0;"><input type="text" value="${item.name}" class="input-field edit-name-input" placeholder="İsim"><input type="text" value="${item.address}" class="input-field edit-address-input" placeholder="Adres (zorunlu)"><input type="text" value="${item.note || ''}" class="input-field edit-note-input" placeholder="Not"><input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih"></div><div class="controls-wrapper" style="min-height: auto; justify-content: flex-start;"><button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button><button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button></div>`;
+            listItem.innerHTML = `<div class="item-content" style="width: 100%; margin-top:0;"><input type="text" value="${item.name}" class="input-field edit-name-input" placeholder="İsim"><input type="text" value="${item.address}" class="input-field edit-address-input" placeholder="Adres (zorunlu)"><input type="text" value="${item.note || ''}" class="input-field edit-note-input" placeholder="Not"><input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih"></div><div class="controls-wrapper" style="min-height: auto; justify-content: flex-start; flex-direction: row;"><button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button><button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button></div>`;
             listItem.querySelector('.edit-address-input').focus();
         }
 
