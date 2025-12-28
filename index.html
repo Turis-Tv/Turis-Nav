@@ -3,62 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Turis Nav</title>
+    <title>Turis Nav Sync (Firebase V9)</title>
+    
+    <!-- STAP 1: FIREBASE SDK's voor modulaire V9 (nodig voor de 'import' syntax) -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     
     <style>
-        /* --- BASIS & LAYOUT --- */
-        @keyframes gradientAnimation{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}body,html{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#f0f0f0;background:linear-gradient(-45deg,#1d2b64,#2c3e50,#485563,#29323c);background-size:400% 400%;animation:gradientAnimation 15s ease infinite;min-height:100vh}h1,h2{font-weight:600;color:#fff;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:10px;font-size:16px}h2{font-size:14px;margin-top:15px}.input-group{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.input-field{width:100%;padding:10px;border:1px solid #4a5568;border-radius:6px;background-color:rgba(0,0,0,0.2);color:#fff;font-size:13px;box-sizing:border-box}
-        
-        /* KAYDET / GÖRÜNTÜLE / ADMIN Knoppen */
-        .action-button{width:100%;padding:6px;margin-bottom:0px;background-image:linear-gradient(to right,#38ef7d,#11998e);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold}
-        .button-group{display:flex;gap:8px;margin-bottom:10px;}.button-group .action-button, .button-group .view-list-button { flex: 1; margin: 0;}
-        
-        .view-list-button { width: 100%; padding: 6px; margin-top: 0px; margin-bottom: 0px; background: transparent; border: 2px solid; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; animation: rainbowBorder 4s linear infinite; }
-        
-        #addressList{list-style:none;padding:0}
-        
-        /* ADMIN KAART: Layout met Route rechtsboven, kleinere iconen, ruimte ertussen */
-        .address-item{background-color:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(5px);border-radius:8px;padding:10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:flex-start;}
-        .item-content{flex-grow:1;cursor:pointer; margin-top: 10px;} 
-        .item-content .name-text{font-size:16px;font-weight:bold;color:#fff;display:block;margin-bottom:2px;}.item-content .address-text{font-size:12px;color:#e0e0e0;word-wrap:break-word}
-        
-        .controls-wrapper{display:flex;flex-direction:column;align-items:flex-end;gap:15px;flex-shrink:0;} 
-        .edit-delete-controls{display:flex;gap:12px;} 
-        .edit-btn, .delete-btn { background:none; border:none; padding:0; cursor:pointer; font-size:14px; }
-        .delete-btn { color:#ff6b6b; }
-        .address-item .waze-btn{padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db;}
-        
-        /* --- EXPORT LIJST (CHAUFFEUR) --- */
-        #exportList{list-style:none;padding:0}
-        .export-item{background-color:rgba(255,255,255,0.05);padding:10px;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background-color .2s;position:relative;}
-        .export-item:active{background-color:rgba(255,255,255,0.15)}
-        .export-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; margin-top: 10px; }
-        .export-item-header strong{color:#fff;font-size:17px;}
-        .export-item-address { font-size: 14px; line-height: 1.4; color: #e0e0e0; }
-        
-        /* Knipperende Route knop (Onderin) */
-        @keyframes flash{0%, 49%{opacity:1;} 50%, 100%{opacity:0.3;}}
-        .export-item .route-btn { position:absolute;bottom:8px;right:8px;padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db; animation: flash 1s infinite; }
-
-        /* --- NOTIFICATIE & REFRESH --- */
-        .refresh-button{background-color:#34495e;color:white;border:none;border-radius:6px;padding:8px 15px;font-size:14px;cursor:pointer;margin-left:10px}
-        
-        /* --- MODAL & FILTER --- */
-        .custom-filter-button{width:100%;padding:10px;border:1px solid #4a5568;border-radius:6px;background-color:rgba(0,0,0,0.2);color:#fff;font-size:13px;text-align:left;position:relative;cursor:pointer}.custom-filter-button::after{content:'▼';font-size:10px;color:#bdc3c7;position:absolute;right:12px;top:50%;transform:translateY(-50%)}#filterModal{z-index:1001}.filter-modal-content{background:rgba(44,62,80,0.9);border:1px solid rgba(255,255,255,0.1);padding:10px;border-radius:12px;width:85%;max-width:280px}.filter-option{padding:12px;border-radius:6px;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}.filter-option:hover{background-color:rgba(255,255,255,0.1)}.filter-option.selected{background-color:rgba(255,255,255,0.15)}.filter-option .checkmark{font-size:20px;color:#38ef7d;display:none}.filter-option.selected .checkmark{display:inline}
-        
-        /* MODALS (Transparant thema) */
-        .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(5px);display:none;justify-content:center;align-items:center;z-index:1000}.modal-content{background:rgba(44,62,80,0.95);border:1px solid rgba(255,255,255,0.2);padding:15px 20px;border-radius:16px;width:90%;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6);text-align:center;position:relative}.modal-close-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:#bdc3c7;font-size:20px;cursor:pointer;padding:5px}.modal-content h3{margin-top:5px;font-size:16px;color:#ecf0f1;font-weight:500}.modal-content p{font-size:14px;color:#fff;margin-bottom:20px;font-weight:normal}.modal-actions{display:flex;justify-content:space-around}.modal-icon-btn{background:none;border:none;cursor:pointer;color:#ecf0f1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;border-radius:10px;transition:transform .2s,background-color .2s}.modal-icon-btn:active{transform:scale(.9)}.modal-icon-btn svg{width:50px;height:50px; fill: white;}.modal-icon-btn span{font-size:12px;font-weight:500}
-        
-        /* --- LOGIN --- */
-        #loginView{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;padding:20px;box-sizing:border-box}#loginView h1 {font-size:24px;border:none;text-align:center;} .login-panel{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:16px;padding:30px;width:100%;max-width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.3)}.login-panel h1{border-bottom:none;margin-bottom:25px;font-size:24px}.role-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;margin-top:15px;border-radius:10px;border:none;font-size:16px;font-weight:bold;cursor:pointer;color:white;background:rgba(255,255,255,0.15);transition:background-color .2s,transform .1s}.role-button:hover{background:rgba(255,255,255,0.25)}.role-button:active{transform:scale(.98)}.role-button svg{width:24px;height:24px;fill:white}.logout-button{background:#c0392b;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;margin-left:10px;font-weight:bold}
-    
-        @keyframes rainbowBorder { 0%,100% { border-color: #ff2a6d; } 25% { border-color: #05d9e8; } 50% { border-color: #71ff47; } 75% { border-color: #ffda47; } }
-        .view-list-button { width: 100%; padding: 6px; margin-top: 5px; margin-bottom: 10px; background: transparent; border: 2px solid; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; animation: rainbowBorder 4s linear infinite; }
-
-        @keyframes rainbowText { 0%,100% { color: #ffadad; } 25% { color: #c2ffad; } 50% { color: #ade9ff; } 75% { color: #e1adff; } }
-        .note-text { font-size: 11px; margin-top: 4px; font-style: italic; animation: rainbowText 6s linear infinite; }
-        .date-text { color: #a0aec0; font-size: 10px; font-style: italic; }
-        .back-button{padding:8px 15px;background-color:#718096;color:#fff;border:none;border-radius:6px;font-size:14px}
+        /* --- CSS is hier weggelaten voor beknoptheid, maar u behoudt de complete CSS --- */
+        @keyframes gradientAnimation{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}body,html{margin:0;padding:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#f0f0f0;background:linear-gradient(-45deg,#1d2b64,#2c3e50,#485563,#29323c);background-size:400% 400%;animation:gradientAnimation 15s ease infinite;min-height:100vh}h1,h2{font-weight:600;color:#fff;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:4px;margin-bottom:10px;font-size:16px}h2{font-size:14px;margin-top:15px}.input-group{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.input-field{width:100%;padding:10px;border:1px solid #4a5568;border-radius:6px;background-color:rgba(0,0,0,0.2);color:#fff;font-size:13px;box-sizing:border-box}.action-button{width:100%;padding:6px;margin-bottom:0px;background-image:linear-gradient(to right,#38ef7d,#11998e);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold}.button-group{display:flex;gap:8px;margin-bottom:10px;}.button-group .action-button, .button-group .view-list-button { flex: 1; margin: 0;}#addressList{list-style:none;padding:0}.address-item{background-color:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(5px);border-radius:8px;padding:10px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:flex-start;}.item-content{flex-grow:1;cursor:pointer; margin-top: 10px;}.item-content .name-text{font-size:16px;font-weight:bold;color:#fff;display:block;margin-bottom:2px;}.item-content .address-text{font-size:12px;color:#e0e0e0;word-wrap:break-word}.controls-wrapper{display:flex;flex-direction:column;align-items:flex-end;gap:15px;flex-shrink:0;}.edit-delete-controls{display:flex;gap:12px;}.edit-btn, .delete-btn { background:none; border:none; padding:0; cursor:pointer; font-size:14px; }.delete-btn { color:#ff6b6b; }.address-item .waze-btn{padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db;}#exportList{list-style:none;padding:0}.export-item{background-color:rgba(255,255,255,0.05);padding:10px;border-radius:6px;margin-bottom:8px;cursor:pointer;transition:background-color .2s;position:relative;}.export-item:active{background-color:rgba(255,255,255,0.15)}.export-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; margin-top: 10px; }.export-item-header strong{color:#fff;font-size:17px;}.export-item-address { font-size: 14px; line-height: 1.4; color: #e0e0e0; }@keyframes flash{0%, 49%{opacity:1;} 50%, 100%{opacity:0.3;}}.export-item .route-btn { position:absolute;bottom:8px;right:8px;padding:5px 8px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:10px;font-weight:bold;background-color:#3398db; animation: flash 1s infinite; }#notificationBell{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-left:10px;padding:5px;cursor:default}#notificationCount{position:absolute;top:0;right:0;background-color:#e74c3c;color:white;border-radius:50%;padding:2px 6px;font-size:10px;font-weight:bold;display:none}.refresh-button{background-color:#34495e;color:white;border:none;border-radius:6px;padding:8px 15px;font-size:14px;cursor:pointer;margin-left:10px}.custom-filter-button{width:100%;padding:10px;border:1px solid #4a5568;border-radius:6px;background-color:rgba(0,0,0,0.2);color:#fff;font-size:13px;text-align:left;position:relative;cursor:pointer}.custom-filter-button::after{content:'▼';font-size:10px;color:#bdc3c7;position:absolute;right:12px;top:50%;transform:translateY(-50%)}#filterModal{z-index:1001}.filter-modal-content{background:rgba(44,62,80,0.9);border:1px solid rgba(255,255,255,0.1);padding:10px;border-radius:12px;width:85%;max-width:280px}.filter-option{padding:12px;border-radius:6px;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}.filter-option:hover{background-color:rgba(255,255,255,0.1)}.filter-option.selected{background-color:rgba(255,255,255,0.15)}.filter-option .checkmark{font-size:20px;color:#38ef7d;display:none}.filter-option.selected .checkmark{display:inline}.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(5px);display:none;justify-content:center;align-items:center;z-index:1000}.modal-content{background:rgba(44,62,80,0.95);border:1px solid rgba(255,255,255,0.2);padding:15px 20px;border-radius:16px;width:90%;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.6);text-align:center;position:relative}.modal-close-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:#bdc3c7;font-size:20px;cursor:pointer;padding:5px}.modal-content h3{margin-top:5px;font-size:16px;color:#ecf0f1;font-weight:500}.modal-content p{font-size:14px;color:#fff;margin-bottom:20px;font-weight:normal}.modal-actions{display:flex;justify-content:space-around}.modal-icon-btn{background:none;border:none;cursor:pointer;color:#ecf0f1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px;border-radius:10px;transition:transform .2s,background-color .2s}.modal-icon-btn:active{transform:scale(.9)}.modal-icon-btn svg{width:50px;height:50px; fill: white;}.modal-icon-btn span{font-size:12px;font-weight:500}#loginView{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;padding:20px;box-sizing:border-box}#loginView h1 {font-size:24px;border:none;text-align:center;} .login-panel{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:16px;padding:30px;width:100%;max-width:320px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.3)}.login-panel h1{border-bottom:none;margin-bottom:25px;font-size:24px}.role-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px;margin-top:15px;border-radius:10px;border:none;font-size:16px;font-weight:bold;cursor:pointer;color:white;background:rgba(255,255,255,0.15);transition:background-color .2s,transform .1s}.role-button:hover{background:rgba(255,255,255,0.25)}.role-button:active{transform:scale(.98)}.role-button svg{width:24px;height:24px;fill:white}.logout-button{background:#c0392b;color:white;border:none;border-radius:6px;padding:4px 8px;font-size:10px;cursor:pointer;margin-left:10px;font-weight:bold}@keyframes rainbowBorder { 0%,100% { border-color: #ff2a6d; } 25% { border-color: #05d9e8; } 50% { border-color: #71ff47; } 75% { border-color: #ffda47; } }.view-list-button { width: 100%; padding: 6px; margin-top: 5px; margin-bottom: 10px; background: transparent; border: 2px solid; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; animation: rainbowBorder 4s linear infinite; }@keyframes rainbowText { 0%,100% { color: #ffadad; } 25% { color: #c2ffad; } 50% { color: #ade9ff; } 75% { color: #e1adff; } }.note-text { font-size: 11px; margin-top: 4px; font-style: italic; animation: rainbowText 6s linear infinite; }.date-text { color: #a0aec0; font-size: 10px; font-style: italic; }.back-button{padding:8px 15px;background-color:#718096;color:#fff;border:none;border-radius:6px;font-size:14px}
     </style>
 </head>
 <body>
@@ -69,6 +22,7 @@
     <!-- SCHERM 2: APP CONTAINER -->
     <div id="adminContainer" style="display: none;">
         <div id="mainView" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;"></div>
             <div class="input-group"><input type="text" id="nameInput" class="input-field" placeholder="İsim  (zorunlu)"><input type="text" id="addressInput" class="input-field" placeholder="Adres (zorunlu)"></div>
             <div class="button-group">
                 <button class="action-button" onclick="saveItem()">Kayıt</button>
@@ -81,7 +35,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>Adres Listesi</h2>
                 <div style="display: flex; align-items: center;">
-                    <button class="refresh-button" onclick="renderAllLists()">🔄 Yenile</button>
+                    <div id="notificationBell"><svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2z"></path></svg><span id="notificationCount"></span></div>
+                    <button class="refresh-button" onclick="refreshExportView()">🔄 Yenile</button>
                     <button id="guestLogoutBtn" class="logout-button" style="display: none;" onclick="logout()">Çıkış yap</button>
                 </div>
             </div>
@@ -92,150 +47,159 @@
 
     <!-- MODALS / POP-UPS -->
     <div id="passwordModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeAdminPasswordModal()">×</button><h3>Yönetici Girişi</h3><input type="password" id="passwordInput" class="input-field" placeholder="Şifre" style="margin-top:10px; margin-bottom:20px; text-align:center;" onkeyup="if(event.key==='Enter')checkAdminPassword()"><button class="action-button" style="width:100%; margin:0;" onclick="checkAdminPassword()">Giriş Yap</button></div></div>
-    <div id="errorModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeErrorModal()">×</button><h3></h3><p id="modal-message"></p><button class="action-button" style="width:100%; margin:0;" onclick="closeErrorModal()">OK</button></div></div>
+    
+    <div id="refreshModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeRefreshModal()">×</button><h3></h3><p id="modal-message"></p><button class="action-button" style="width:100%; margin:0;" onclick="closeRefreshModal()">OK</button></div></div>
+
     <div id="navigationModal" class="modal-overlay"><div class="modal-content" onclick="event.stopPropagation()"><button class="modal-close-btn" onclick="closeNavigationModal()">×</button><h3>Şuraya gidin:</h3><p id="modal-address-text"></p><div id="modal-actions-container" class="modal-actions"></div></div></div>
     <div id="filterModal" class="modal-overlay"><div class="filter-modal-content" onclick="event.stopPropagation()"><div id="filterOptionsList"></div></div></div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script type="module">
+    
+    // Importeer de noodzakelijke functies voor Firebase V9 Modulair
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { 
+        getFirestore, 
+        collection, 
+        getDocs, 
+        doc, 
+        addDoc, 
+        updateDoc, 
+        deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    
+    // ===================================================================
+    // 1. FIREBASE CONFIGURATIE (UW KEYS)
+    // ===================================================================
 
-    <script>
-    // ==================================================================================
-    // UW PERSOONLIJKE FIREBASE CONFIGURATIE IS HIER GEPLAATST
-    // ==================================================================================
+    const ADMIN_PASSWORD = '6636';
+
     const firebaseConfig = {
       apiKey: "AIzaSyCYOutcxpBRRQ3MEOVZiLL-lI2L1A8uWvs",
       authDomain: "turisnavapp.firebaseapp.com",
-      databaseURL: "https://turisnavapp.firebaseio.com", // BELANGRIJK: TOEGEVOEGD VOOR DATABASE CONNECTIE
       projectId: "turisnavapp",
-      storageBucket: "turisnavapp.appspot.com",
+      storageBucket: "turisnavapp.firebasestorage.app",
       messagingSenderId: "238654300870",
       appId: "1:238654300870:web:6e09d6b353df94d0e8adc7",
       measurementId: "G-7WFC0S7XRR"
     };
-    // ==================================================================================
 
-    // Firebase initialisatie
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const itemsRef = database.ref('addresses');
-
-    const ADMIN_PASSWORD = '6636';
+    // INITIALISATIE
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app); 
+    const ADDRESS_COLLECTION = 'addresses';
+    
+    const NEW_ITEM_COUNT_KEY = 'newItemCount'; 
     let currentFilterValue = 'all';
-    let allItems = []; // Globale variabele om alle items te bewaren
 
-    // --- REAL-TIME LISTENER ---
-    itemsRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        allItems = [];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                allItems.push({ id: key, ...data[key] });
-            });
-        }
-        allItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // ===================================================================
+    // 2. DATA HANDLING (Cloud Synchronisatie - FIREBASE V9 FUNCTIES)
+    // ===================================================================
 
-        if (sessionStorage.getItem('userRole') === 'guest' && snapshot.numChildren() > (window.lastItemCount || 0)) {
-            if (window.lastItemCount !== undefined) { 
-                playBeep();
-            }
-        }
-        window.lastItemCount = snapshot.numChildren();
-        
-        renderAllLists();
-    });
-
-    function renderAllLists() {
-        if (document.getElementById('mainView').style.display === 'block') {
-            renderAdminList();
-        }
-        if (document.getElementById('exportView').style.display === 'block') {
-            renderFilteredList();
-            updateFilterOptions();
+    async function loadItems() {
+        try {
+            const querySnapshot = await getDocs(collection(db, ADDRESS_COLLECTION));
+            const items = querySnapshot.docs.map(doc => ({
+                id: doc.id, 
+                ...doc.data()
+            }));
+            return items;
+        } catch (e) {
+            console.error("Fout bij laden van data:", e);
+            showRefreshModal('Hata (Veri)', 'Adresler yüklenemedi. İnternet bağlantınızı kontrol edin.');
+            return [];
         }
     }
-    
-    document.addEventListener('DOMContentLoaded', () => { 
-        const userRole = sessionStorage.getItem('userRole'); 
-        if (userRole === 'admin') loginAsAdmin(); 
-        else if (userRole === 'guest') loginAsGuest();
-        else { 
-            document.getElementById('loginView').style.display = 'flex'; 
-            document.getElementById('adminContainer').style.display = 'none'; 
-        } 
-    });
 
-    // --- DATA FUNCTIES (NU MET FIREBASE) ---
-    function saveItem() { 
+    // ===================================================================
+    // 3. ADMIN FUNCTIES (CRUD - Gerefactoreerd voor V9 & Document ID's)
+    // ===================================================================
+
+    async function saveItem() { 
         const name = document.getElementById('nameInput').value.trim();
-        const address = document.getElementById('addressInput').value.trim();
-        if (!address) { showErrorModal('Hata !!!', 'Adres alanı zorunludur.'); return; }
+        const address = document.getElementById('addressInput').value.trim(); 
+        if (!address) { 
+            showRefreshModal('Hata !!!', 'Adres alanı zorunludur.'); 
+            return;
+        } 
         
         const today = new Date();
         const formattedDate = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
         
-        itemsRef.push({ 
-            name, 
-            address, 
-            note: '', 
-            date: formattedDate,
-            createdAt: firebase.database.ServerValue.TIMESTAMP 
-        });
+        const newItemData = { name, address, note: '', date: formattedDate }; 
         
-        document.getElementById('nameInput').value = ''; 
-        document.getElementById('addressInput').value = ''; 
-        document.getElementById('nameInput').focus(); 
+        try {
+            await addDoc(collection(db, ADDRESS_COLLECTION), newItemData); // ADD V9
+            incrementNewItemCount(); 
+            document.getElementById('nameInput').value = ''; 
+            document.getElementById('addressInput').value = ''; 
+            document.getElementById('nameInput').focus(); 
+            await renderAdminList();
+        } catch (e) {
+            showRefreshModal('Hata', 'Kaydedilemedi.');
+        }
     }
-
-    function deleteItem(id) { 
+    
+    async function deleteItem(id) { 
         if (!confirm("Bu öğeyi silmek istediğinizden emin misiniz?")) return; 
-        database.ref('addresses/' + id).remove();
+        try {
+            await deleteDoc(doc(db, ADDRESS_COLLECTION, id)); // DELETE V9
+            await renderAdminList(); 
+        } catch (e) {
+            showRefreshModal('Hata', 'Silme işlemi başarısız oldu.');
+        }
     }
 
-    function startEdit(id) {
-        const item = allItems.find(i => i.id === id);
-        if (!item) return;
+    async function startEdit(id) { 
+        const items = await loadItems();
+        const item = items.find(i => i.id === id); 
+        const listItem = document.getElementById(`item-${id}`); 
+        if (!listItem || !item) return; 
         
-        const listItem = document.getElementById(`item-${id}`);
-        if (!listItem) return;
-
         listItem.innerHTML = `<div class="item-content" style="width: 100%; margin-top:0;">
             <input type="text" value="${item.name}" class="input-field edit-name-input" placeholder="İsim">
             <input type="text" value="${item.address}" class="input-field edit-address-input" placeholder="Adres (zorunlu)">
             <input type="text" value="${item.note || ''}" class="input-field edit-note-input" placeholder="Not">
             <input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih">
         </div>
-        <div class="controls-wrapper">
-            <button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button>
-            <button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button>
-        </div>`; 
+        <div class="controls-wrapper"><button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button><button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button></div>`; 
         listItem.querySelector('.edit-address-input').focus(); 
     }
 
-    function saveEdit(id) { 
-        const newName = document.querySelector(`#item-${id} .edit-name-input`).value.trim();
-        const newAddress = document.querySelector(`#item-${id} .edit-address-input`).value.trim();
-        const newNote = document.querySelector(`#item-${id} .edit-note-input`).value.trim();
-        const newDate = document.querySelector(`#item-${id} .edit-date-input`).value.trim();
-        if (!newAddress) { showErrorModal('Hata !!!', 'Adres alanı zorunludur.'); return; }
-
-        database.ref('addresses/' + id).update({
-            name: newName,
-            address: newAddress,
-            note: newNote,
-            date: newDate
-        });
+    async function saveEdit(id) { 
+        const listItem = document.getElementById(`item-${id}`);
+        const newName = listItem.querySelector('.edit-name-input').value.trim();
+        const newAddress = listItem.querySelector('.edit-address-input').value.trim();
+        const newNote = listItem.querySelector('.edit-note-input').value.trim();
+        const newDate = listItem.querySelector('.edit-date-input').value.trim();
+        
+        if (!newAddress) { showRefreshModal('Hata !!!', 'Adres alanı zorunludur.'); return } 
+        
+        try {
+            await updateDoc(doc(db, ADDRESS_COLLECTION, id), { // UPDATE V9
+                name: newName, 
+                address: newAddress, 
+                note: newNote, 
+                date: newDate 
+            });
+            await renderAdminList(); 
+        } catch (e) {
+            showRefreshModal('Hata', 'Güncelleme başarısız oldu.');
+        }
     }
-
-    // --- RENDER FUNCTIES (GEBRUIKEN NU 'allItems' VARIABELE) ---
-    function renderAdminList() { 
+    
+    // ===================================================================
+    // 4. RENDER & NAVIGATIE FUNCTIES (Gebruiken ID's)
+    // ===================================================================
+    
+    async function renderAdminList() { 
+        const items = await loadItems(); 
         const list = document.getElementById('addressList'); 
         list.innerHTML = ''; 
-        allItems.forEach(item => { 
+        
+        items.forEach((item) => { 
             const li = document.createElement('li'); 
             li.className = 'address-item'; 
-            li.id = `item-${item.id}`; 
+            li.id = `item-${item.id}`;
             
             const noteHTML = item.note ? `<div class="note-text">${item.note}</div>` : '';
             const dateHTML = item.date ? `<div class="date-text">${item.date}</div>` : ''; 
@@ -257,17 +221,16 @@
             list.appendChild(li); 
         }); 
     }
-
-    function renderFilteredList() { 
-        const filtered = currentFilterValue === 'all' ? allItems : allItems.filter(item => item.name === currentFilterValue); 
+    
+    async function renderFilteredList() { 
+        const all = await loadItems(); 
+        const filtered = currentFilterValue === 'all' ? all : all.filter(item => item.name === currentFilterValue); 
         const list = document.getElementById('exportList'); 
         list.innerHTML = ''; 
-        if (filtered.length === 0) { 
-            list.innerHTML = '<li style="text-align:center;color:#a0aec0;padding:20px;">Bu filtre için adres yok.</li>'; 
-            return; 
-        } 
         
-        filtered.forEach(item => { 
+        if (filtered.length === 0) { list.innerHTML = '<li style="text-align:center;color:#a0aec0;padding:20px;">Bu filtre için adres yok.</li>'; return; } 
+        
+        filtered.forEach((item) => { 
             const li = document.createElement('li'); 
             li.className = 'export-item'; 
             li.onclick = () => openNavigationModal(item.id);
@@ -282,12 +245,42 @@
                     ${dateHTML}
                 </div>
                 <div class="export-item-address">${item.address}</div>
-                ${noteHTML}`; 
+                ${noteHTML}
+            `; 
             list.appendChild(li); 
         }); 
     }
 
-    // --- UI & NAVIGATIE FUNCTIES ---
+    async function openNavigationModal(id) { 
+        const items = await loadItems();
+        const item = items.find(i => i.id === id); 
+        if (!item) return;
+
+        document.getElementById('modal-address-text').textContent = item.address; 
+        const safeAddr = item.address.replace(/'/g, "\\'"); 
+        
+        const wazeSVG = `<svg viewBox="0 0 100 100"><path d="M72.9,39.3c-2.3-0.9-4.8-1.5-7.5-1.5c-4.9,0-9.4,1.4-13.4,3.8c-2.1,1.3-4,2.9-5.5,4.7c-0.4,0.4-0.8,0.9-1.2,1.3 c-0.6,0.7-1.2,1.3-1.8,1.9l-0.1,0.1c-0.5,0.5-0.9,0.9-1.4,1.4C37.4,56,33.8,61,33.8,66.2c0,1,0.1,2.1,0.4,3.1 c0.1,0.5,0.2,0.9,0.4,1.3c0.4,1,0.9,2,1.5,2.9c-0.7,1-1.5,1.9-2.4,2.8c0.5,0.5,1,0.9,1.5,1.3c2.3,1.9,5,3.3,8,4.2 c2.1,0.6,4.2,0.9,6.4,0.9c4.9,0,9.4-1.4,13.4-3.8c2.1-1.3,4-2.9,5.5-4.7c1.5-1.8,2.7-3.9,3.5-6.1c0.9-2.5,1.4-5.2,1.4-8 c0-5.2-1.7-10.1-4.7-14.1C75.2,42.4,74.2,40.8,72.9,39.3z M37,29c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S34,29,37,29z M62.6,20.2c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S59.6,20.2,62.6,20.2z M50,0C22.4,0,0,22.4,0,50c0,27.6,22.4,50,50,50s50-22.4,50-50C100,22.4,77.6,0,50,0z M74.3,69.5 C73,72.1,71.4,74.4,69.4,76.4c-2.3,2.3-5.1,4.1-8.1,5.4c-3.5,1.5-7.3,2.3-11.3,2.3s-7.8-0.8-11.3-2.3 c-6.6-2.8-12-8.2-14.8-14.8C22.2,63,21.5,58.8,21.5,54.5c0-10,4.1-19,10.7-25.6C37,24,42,21.5,47.9,21.5c4.3,0,8.4,1,12.1,2.9 c5.3,2.7,9.7,7.1,12.4,12.4C76.5,45.2,78.5,50,78.5,55C78.5,60.2,77.1,65.1,74.3,69.5z"></path></svg><span>Waze</span></button>`;
+        const mapsButtonHTML = `<button class="modal-icon-btn" onclick="navigate('${safeAddr}', 'maps')"><svg viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67a24 24 0 0 1-35.464 0zM192 256c35.346 0 64-28.654 64-64s-28.654-64-64-64-64 28.654-64 64 28.654 64 64 64z"></path></svg><span>Maps</span></button>`;
+        
+        document.getElementById('modal-actions-container').innerHTML = wazeButtonHTML + mapsButtonHTML;
+        document.getElementById('navigationModal').style.display = 'flex'; 
+    }
+
+    // [ ... Overige inlog en modal functies ... ]
+
+    document.addEventListener('DOMContentLoaded', async () => { 
+        const userRole = sessionStorage.getItem('userRole'); 
+        if (userRole === 'admin') {
+            loginAsAdmin(); 
+        } else if (userRole === 'guest') {
+            loginAsGuest();
+        }
+        else { 
+            document.getElementById('loginView').style.display = 'flex'; 
+            document.getElementById('adminContainer').style.display = 'none'; 
+        } 
+    });
+
     function loginAsAdmin() {
         sessionStorage.setItem('userRole', 'admin');
         document.getElementById('loginView').style.display = 'none';
@@ -295,31 +288,37 @@
         document.getElementById('guestLogoutBtn').style.display = 'none';
         showMainView();
     }
-
-    function loginAsGuest() {
+    
+    async function loginAsGuest() {
         sessionStorage.setItem('userRole', 'guest');
         document.getElementById('loginView').style.display = 'none';
         document.getElementById('adminContainer').style.display = 'block';
         document.getElementById('guestLogoutBtn').style.display = 'inline-block';
         document.getElementById('backButton').style.display = 'none'; 
-        showExportView();
+        
+        const count = getNewItemCount();
+        if (count > 0) playBeep();
+        
+        await showExportView(false);
     }
-
+    
     function logout() { 
         sessionStorage.removeItem('userRole'); 
-        window.location.reload(); 
+        document.getElementById('adminContainer').style.display = 'none';
+        document.getElementById('loginView').style.display = 'flex';
     }
 
-    function showMainView() { 
+    async function showMainView() { 
         document.getElementById('exportView').style.display = 'none'; 
         document.getElementById('mainView').style.display = 'block'; 
-        renderAdminList(); 
+        await renderAdminList(); 
     }
-
-    function showExportView() {
+    
+    async function showExportView(reset = true) {
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('exportView').style.display = 'block';
         const backBtn = document.getElementById('backButton');
+        
         if (sessionStorage.getItem('userRole') === 'admin') {
             backBtn.textContent = '‹‹‹ ';
             backBtn.onclick = showMainView;
@@ -330,7 +329,19 @@
         
         currentFilterValue = 'all';
         document.getElementById('customFilterBtn').textContent = 'Tüm İsimler';
-        renderFilteredList();
+
+        if (reset) resetNewItemCount();
+        updateNotificationDisplay(getNewItemCount());
+        await renderFilteredList();
+    }
+    
+    async function refreshExportView() { 
+        resetNewItemCount(); 
+        updateNotificationDisplay(0); 
+        currentFilterValue = 'all';
+        document.getElementById('customFilterBtn').textContent = 'Tüm İsimler';
+        await renderFilteredList(); 
+        showRefreshModal('Yenileme Başarılı', 'Liste başarıyla yenilendi.');
     }
 
     function showAdminPasswordModal() { document.getElementById('passwordModal').style.display = 'flex'; setTimeout(() => document.getElementById('passwordInput').focus(), 50); }
@@ -342,44 +353,72 @@
             loginAsAdmin(); 
         } else { 
             closeAdminPasswordModal();
-            showErrorModal('Hata !!!', 'Yanlış şifre!');
+            showRefreshModal('Hata !!!', 'Yanlış şifre!');
         } 
     }
 
-    function showErrorModal(title, message) {
-        document.getElementById('errorModal').style.display = 'flex';
-        document.querySelector('#errorModal h3').textContent = title;
+    function showRefreshModal(title, message) {
+        document.getElementById('refreshModal').style.display = 'flex';
+        document.querySelector('#refreshModal h3').textContent = title;
         document.getElementById('modal-message').textContent = message;
     }
-    function closeErrorModal() { document.getElementById('errorModal').style.display = 'none'; }
-    document.getElementById('errorModal').addEventListener('click', closeErrorModal);
-    
-    function openNavigationModal(id) { 
-        const item = allItems.find(i => i.id === id);
-        if (!item) return;
-        document.getElementById('modal-address-text').textContent = item.address; 
-        const safeAddr = item.address.replace(/'/g, "\\'"); 
-        
-        const wazeSVG = `<svg viewBox="0 0 100 100"><path d="M72.9,39.3c-2.3-0.9-4.8-1.5-7.5-1.5c-4.9,0-9.4,1.4-13.4,3.8c-2.1,1.3-4,2.9-5.5,4.7c-0.4,0.4-0.8,0.9-1.2,1.3 c-0.6,0.7-1.2,1.3-1.8,1.9l-0.1,0.1c-0.5,0.5-0.9,0.9-1.4,1.4C37.4,56,33.8,61,33.8,66.2c0,1,0.1,2.1,0.4,3.1 c0.1,0.5,0.2,0.9,0.4,1.3c0.4,1,0.9,2,1.5,2.9c0.7,1,1.5,1.9,2.4,2.8c0.5,0.5,1,0.9,1.5,1.3c2.3,1.9,5,3.3,8,4.2 c2.1,0.6,4.2,0.9,6.4,0.9c4.9,0,9.4-1.4,13.4-3.8c2.1-1.3,4-2.9,5.5-4.7c1.5-1.8,2.7-3.9,3.5-6.1c0.9-2.5,1.4-5.2,1.4-8 c0-5.2-1.7-10.1-4.7-14.1C75.2,42.4,74.2,40.8,72.9,39.3z M37,29c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S34,29,37,29z M62.6,20.2c3,0,5.4,2.4,5.4,5.4s-2.4,5.4-5.4,5.4s-5.4-2.4-5.4-5.4S59.6,20.2,62.6,20.2z M50,0C22.4,0,0,22.4,0,50c0,27.6,22.4,50,50,50s50-22.4,50-50C100,22.4,77.6,0,50,0z M74.3,69.5 C73,72.1,71.4,74.4,69.4,76.4c-2.3,2.3-5.1,4.1-8.1,5.4c-3.5,1.5-7.3,2.3-11.3,2.3s-7.8-0.8-11.3-2.3 c-6.6-2.8-12-8.2-14.8-14.8C22.2,63,21.5,58.8,21.5,54.5c0-10,4.1-19,10.7-25.6C37,24,42,21.5,47.9,21.5c4.3,0,8.4,1,12.1,2.9 c5.3,2.7,9.7,7.1,12.4,12.4C76.5,45.2,78.5,50,78.5,55C78.5,60.2,77.1,65.1,74.3,69.5z"></path></svg>`;
-        const mapsSVG = `<svg viewBox="0 0 384 512"><path d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67a24 24 0 0 1-35.464 0zM192 256c35.346 0 64-28.654 64-64s-28.654-64-64-64-64 28.654-64 64 28.654 64 64 64z"></path></svg>`;
-
-        const wazeButtonHTML = `<button class="modal-icon-btn" onclick="navigate('${safeAddr}', 'waze')">${wazeSVG}<span>Waze</span></button>`;
-        const mapsButtonHTML = `<button class="modal-icon-btn" onclick="navigate('${safeAddr}', 'maps')">${mapsSVG}<span>Maps</span></button>`;
-        
-        document.getElementById('modal-actions-container').innerHTML = wazeButtonHTML + mapsButtonHTML;
-        document.getElementById('navigationModal').style.display = 'flex'; 
+    function closeRefreshModal() {
+        document.getElementById('refreshModal').style.display = 'none';
     }
+    document.getElementById('refreshModal').addEventListener('click', closeRefreshModal);
+    
     function closeNavigationModal() { document.getElementById('navigationModal').style.display = 'none'; }
     document.getElementById('navigationModal').addEventListener('click', closeNavigationModal);
     function navigate(address, app) { const enc = encodeURIComponent(address), url = app === 'waze' ? `intent://?q=${enc}&navigate=yes#Intent;package=com.waze;scheme=waze;end` : `https://www.google.com/maps/search/?api=1&query=${enc}`; window.open(url, '_system') || window.open(url, '_blank'); closeNavigationModal(); }
 
-    function openFilterModal() { updateFilterOptions(); document.getElementById('filterModal').style.display = 'flex'; }
-    function updateFilterOptions() { const names = [...new Set(allItems.map(i => i.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')); const list = document.getElementById('filterOptionsList'); list.innerHTML = ''; const add = (val, txt) => { const opt = document.createElement('div'); opt.className = 'filter-option' + (currentFilterValue === val ? ' selected' : ''); opt.innerHTML = `<span>${txt}</span><span class="checkmark">✓</span>`; opt.onclick=(e)=>{e.stopPropagation();selectFilter(val);};list.appendChild(opt); }; add('all', 'Tüm İsimler'); names.forEach(n => add(n, n)); }
+    async function openFilterModal() { 
+        const items = await loadItems();
+        const names = [...new Set(items.map(i => i.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')); 
+        const list = document.getElementById('filterOptionsList'); 
+        list.innerHTML = ''; 
+        
+        const add = (val, txt) => { 
+            const opt = document.createElement('div'); 
+            opt.className = 'filter-option' + (currentFilterValue === val ? ' selected' : ''); 
+            opt.innerHTML = `<span>${txt}</span><span class="checkmark">✓</span>`; 
+            opt.onclick=(e)=>{e.stopPropagation();selectFilter(val);};
+            list.appendChild(opt); 
+        }; 
+        add('all', 'Tüm İsimler'); 
+        names.forEach(n => add(n, n)); 
+        document.getElementById('filterModal').style.display = 'flex'; 
+    }
+    
     function closeFilterModal() { document.getElementById('filterModal').style.display = 'none'; }
     document.getElementById('filterModal').addEventListener('click', closeFilterModal);
-    function selectFilter(val) { currentFilterValue = val; document.getElementById('customFilterBtn').textContent = val === 'all' ? 'Tüm İsimler' : val; closeFilterModal(); renderFilteredList(); }
     
-    function playBeep() { try { const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.setValueAtTime(880,a.currentTime);g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(0.5,a.currentTime+0.01);g.gain.linearRampToValueAtTime(0,a.currentTime+0.3);o.start(a.currentTime);o.stop(a.currentTime+0.3); } catch (e) { console.warn("Audio API niet beschikbaar.", e); }}
+    async function selectFilter(val) { 
+        currentFilterValue = val; 
+        document.getElementById('customFilterBtn').textContent = val === 'all' ? 'Tüm İsimler' : val; 
+        closeFilterModal(); 
+        await renderFilteredList(); 
+    }
+    
+    const getNewItemCount = () => parseInt(localStorage.getItem(NEW_ITEM_COUNT_KEY) || '0');
+    const incrementNewItemCount = () => localStorage.setItem(NEW_ITEM_COUNT_KEY, (getNewItemCount() + 1));
+    const resetNewItemCount = () => localStorage.setItem(NEW_ITEM_COUNT_KEY, '0');
+    
+    function updateNotificationDisplay(count) { 
+        const bell = document.getElementById('notificationBell');
+        const c = document.getElementById('notificationCount'); 
+        if (!bell || !c) return; 
+        c.style.display = count > 0 ? 'block' : 'none'; 
+        c.textContent = count; 
+    }
+    
+    function playBeep() { 
+        try { 
+            const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.setValueAtTime(880,a.currentTime);g.gain.setValueAtTime(0,a.currentTime);g.gain.linearRampToValueAtTime(0.5,a.currentTime+0.01);g.gain.linearRampToValueAtTime(0,a.currentTime+0.3);o.start(a.currentTime);o.stop(a.currentTime+0.3); 
+        } catch (e) { 
+            console.warn("Audio API niet beschikbaar.", e); 
+        }
+    }
+
     </script>
 </body>
 </html>
