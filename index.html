@@ -13,7 +13,8 @@
             color: #f0f0f0;
             background: linear-gradient(-45deg, #1d2b64, #2c3e50, #485563, #29323c);
             background-size: 400% 400%; animation: gradientAnimation 15s ease infinite;
-            height: 100vh; box-sizing: border-box; overflow: hidden;
+            height: 100vh; box-sizing: border-box; 
+            overflow: hidden; /* Houdt de body vast */
         }
         h1, h2 {
             font-weight: 600; color: #fff;
@@ -54,12 +55,26 @@
         }
 
         #adminContainer { height: calc(100vh - 20px); }
+        
+        /* CORRECTIE CSS: Zorgt dat de container de ruimte vult en de inhoud verticaal verdeelt */
         #mainView, #exportView {
-            display: none; flex-direction: column; height: 100%;
+            display: none; 
+            flex-direction: column; 
+            height: 100%;
         }
+        
+        /* De UL's moeten de overgebleven ruimte innemen en scrollen */
         #addressList, #exportList {
-            flex-grow: 1; overflow-y: auto; padding-right: 5px;
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding-right: 5px;
         }
+        
+        /* NIEUW: Stijl voor het verslepen */
+        .address-item { cursor: grab; }
+        .address-item:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background: #2980b9; }
+
 
         /* --- LOGIN / LANDING SCHERM (mooi design) --- */
         #loginView {
@@ -186,6 +201,11 @@
             border-radius: 8px; padding: 10px; margin-bottom: 7px;
             min-height: 80px;
         }
+        /* NIEUW: De items in de admin lijst zijn de handles om te verslepen (voor delay) */
+        #mainView .address-item { 
+            cursor: move; /* Geeft visuele hint dat het versleepbaar is */
+        }
+
         .item-content { cursor: pointer; padding-right: 60px; }
         .name-text { font-size: 15px; font-weight: bold; color: #fff; display: block; margin-bottom: 2px; }
         .address-text { font-size: 12px; color: #e0e0e0; word-wrap: break-word; }
@@ -206,7 +226,6 @@
             font-weight: bold; background-color: #3398db;
         }
         .address-item .route-btn { position: absolute; bottom: 10px; right: 10px; }
-        
         .export-item {
             background-color: rgba(255, 255, 255, 0.05);
             padding: 12px; border-radius: 8px;
@@ -451,10 +470,11 @@
     </style>
 </head>
 <body>
-    <!-- LANDING / LOGIN -->
+    <!-- De HTML is exact hetzelfde gebleven -->
     <div id="loginView">
         <div class="login-panel">
-  
+
+   
             <button class="role-button admin" onclick="showPinPad()">
                 <div class="role-main">
                     <div class="role-icon">
@@ -485,6 +505,7 @@
 
     <div id="adminContainer" style="display: none;">
         <div id="mainView">
+  
             <div class="input-group">
                 <input type="text" id="nameInput" class="input-field" placeholder="İsim (zorunlu)">
                 <input type="text" id="addressInput" class="input-field" placeholder="Adres (zorunlu)">
@@ -494,13 +515,15 @@
                 <button class="view-list-button" onclick="showExportView()">Liste</button>
                 <button class="logout-button" onclick="logout()">Admin</button>
             </div>
+            <!-- NIEUW: Titel voor de gesorteerde lijst is hier geplaatst -->
+
             <ul id="addressList"></ul>
         </div>
 
         <div id="exportView">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Adres Listesi</h2>
-                <div style="display: flex; align-items: center;">
+    
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <button class="refresh-button" onclick="renderAllLists()">🔄 Yenile</button>
                     <button id="guestLogoutBtn" class="logout-button" style="display: none;" onclick="logout()">Çıkış yap</button>
                 </div>
@@ -533,6 +556,7 @@
 
     <div id="filterModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 style="margin-bottom: 10px;">İsme Göre Filtrele</h3>
             <div id="filterOptionsList"></div>
         </div>
     </div>
@@ -542,13 +566,12 @@
             <h3 id="confirmation-title">Onay</h3>
             <p id="confirmation-message"></p>
             <div class="modal-actions">
-                <button id="cancel-btn" class="modal-action-button cancel-btn">↩ </button>
+                <button id="cancel-btn" class="modal-action-button cancel-btn">↩ İptal</button>
                 <button id="confirm-btn" class="modal-action-button confirm-btn">Sil</button>
             </div>
         </div>
     </div>
-
-    <!-- PIN PAD MODAL -->
+    
     <div id="pinPadModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-bottom: 20px;">Şifre Girin</h3>
@@ -572,6 +595,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCYOutcxpBRRQ3MEOVZiLL-lI2L1A8uWvs",
@@ -591,6 +615,7 @@
         let currentFilterValue = 'all';
         let allItems = [];
         let enteredPin = '';
+        let sortableInstance = null; 
 
         itemsRef.on('value', (snapshot) => {
             const data = snapshot.val();
@@ -600,7 +625,16 @@
                     allItems.push({ id: key, ...data[key] });
                 });
             }
-            allItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            
+            // Sorteer de lijst op basis van 'sortOrder'. 
+            allItems.sort((a, b) => {
+                const orderA = a.sortOrder === undefined || a.sortOrder === null ? Infinity : a.sortOrder;
+                const orderB = b.sortOrder === undefined || b.sortOrder === null ? Infinity : b.sortOrder;
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                return (b.createdAt || 0) - (a.createdAt || 0); 
+            });
 
             if (sessionStorage.getItem('userRole') === 'guest' &&
                 snapshot.numChildren() > (window.lastItemCount || 0)) {
@@ -639,7 +673,8 @@
                 address,
                 note: '',
                 date: formattedDate,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                sortOrder: Date.now() 
             });
 
             document.getElementById('nameInput').value = '';
@@ -659,12 +694,13 @@
 
             listItem.innerHTML =
                 `<div class="item-content" style="width: 100%; margin-top:0;">
-                    <input type="text" value="${item.name}" class="input-field edit-name-input" placeholder="İsim">
+                    <input type="text" value="${item.name || ''}" class="input-field edit-name-input" placeholder="İsim">
                     <input type="text" value="${item.address}" class="input-field edit-address-input" placeholder="Adres (zorunlu)">
                     <input type="text" value="${item.note || ''}" class="input-field edit-note-input" placeholder="Not">
                     <input type="text" value="${item.date || ''}" class="input-field edit-date-input" placeholder="Tarih">
+                    <input type="number" value="${item.sortOrder === undefined || item.sortOrder === null ? '' : item.sortOrder}" class="input-field edit-sort-order-input" placeholder="Sorteer Nr. (optioneel)">
                 </div>
-                <div class="controls-wrapper" style="min-height: auto; justify-content: flex-start; flex-direction: row;">
+                <div class="controls-wrapper" style="min-height: auto; justify-content: flex-start; flex-direction: row; gap: 5px;">
                     <button onclick="saveEdit('${id}')" class="action-button" style="width:auto;padding:8px 12px;margin:0;">✓</button>
                     <button onclick="renderAdminList()" class="back-button" style="width:auto;padding:8px 12px;margin:0;">✗</button>
                 </div>`;
@@ -677,18 +713,30 @@
             const newAddress = document.querySelector(`#item-${id} .edit-address-input`).value.trim();
             const newNote = document.querySelector(`#item-${id} .edit-note-input`).value.trim();
             const newDate = document.querySelector(`#item-${id} .edit-date-input`).value.trim();
+            
+            const sortOrderInput = document.querySelector(`#item-${id} .edit-sort-order-input`).value;
+            const newSortOrder = sortOrderInput === '' ? null : parseInt(sortOrderInput, 10);
+            
             if (!newAddress) { showErrorModal('Hata !!!', 'Adres alanı zorunludur.'); return; }
+
             database.ref('addresses/' + id).update({
-                name: newName, address: newAddress, note: newNote, date: newDate
+                name: newName, address: newAddress, note: newNote, date: newDate, sortOrder: newSortOrder
             });
         }
 
         function renderAdminList() {
-            const list = document.getElementById('addressList'); list.innerHTML = '';
+            const list = document.getElementById('addressList'); 
+            list.innerHTML = '';
+            
             allItems.forEach(item => {
-                const li = document.createElement('li'); li.className = 'address-item'; li.id = `item-${item.id}`;
+                const li = document.createElement('li'); 
+                li.className = 'address-item'; 
+                li.id = `item-${item.id}`;
+                li.dataset.id = item.id; 
+
                 const noteHTML = item.note ? `<div class="note-text">${item.note}</div>` : '';
                 const dateHTML = item.date ? `<div class="date-text">${item.date}</div>` : '';
+                
                 li.innerHTML =
                     `<div class="item-content" onclick="openNavigationModal('${item.id}')">
                         <div class="name-text">${item.name || '(İsimsiz)'}</div>
@@ -702,6 +750,8 @@
                     <button class="route-btn" onclick="event.stopPropagation(); openNavigationModal('${item.id}');">Route</button>`;
                 list.appendChild(li);
             });
+            // Initialisatie van Sortable na het renderen van de lijst
+            initializeSortable(); 
         }
 
         function renderFilteredList() {
@@ -746,8 +796,7 @@
             document.getElementById('backButton').style.display = 'none';
             showExportView();
         }
-
-        // BELANGRIJK: geen reload meer -> geen localhost error
+        
         function logout() {
             sessionStorage.removeItem('userRole');
             document.getElementById('loginView').style.display = 'flex';
@@ -759,6 +808,32 @@
             document.getElementById('mainView').style.display = 'flex';
             renderAdminList();
         }
+        
+        function initializeSortable() {
+            if (sortableInstance) {
+                sortableInstance.destroy(); 
+            }
+            const listElement = document.getElementById('addressList');
+            if (listElement) {
+                 sortableInstance = new Sortable(listElement, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    delay: 200, // NIEUW: Houd 200ms ingedrukt voordat verslepen begint
+                    touchStartThreshold: 5, // NIEUW: Zorgt voor betere detectie op touchscreens
+                    handle: ".address-item", // NIEUW: Het hele item is het drag-element
+                    onEnd: function (evt) {
+                        const items = listElement.children;
+                        const updates = {};
+                        for (let i = 0; i < items.length; i++) {
+                            const itemId = items[i].dataset.id;
+                            // Sla de index (i) op als de nieuwe sortOrder
+                            updates[`/addresses/${itemId}/sortOrder`] = i;
+                        }
+                        database.ref().update(updates);
+                    }
+                });
+            }
+        }
 
         function showExportView() {
             document.getElementById('mainView').style.display = 'none';
@@ -766,7 +841,7 @@
 
             const backBtn = document.getElementById('backButton');
             if (sessionStorage.getItem('userRole') === 'admin') {
-                backBtn.textContent = '‹‹‹ ';
+                backBtn.textContent = '‹‹‹';
                 backBtn.onclick = showMainView;
                 backBtn.style.display = 'inline-block';
             } else {
@@ -781,7 +856,10 @@
         /* PIN PAD */
         const pinDisplay = document.getElementById('pinDisplay');
 
-        function showPinPad() { document.getElementById('pinPadModal').style.display = 'flex'; }
+        function showPinPad() { 
+            document.getElementById('pinPadModal').style.display = 'flex'; 
+            enteredPin = ''; pinDisplay.textContent = '';
+        }
         function closePinPad() {
             document.getElementById('pinPadModal').style.display = 'none';
             enteredPin = ''; pinDisplay.textContent = '';
